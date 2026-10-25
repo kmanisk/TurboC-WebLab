@@ -104,7 +104,7 @@ ${START_COMMAND}
       <div class="terminal-window">
         <div class="terminal-mark" aria-hidden="true">C:\\&gt;_</div>
         <div class="empty-label">Turbo C3</div>
-        <div class="empty-hint">Ready to launch</div>
+        <div class="empty-hint">Click Start to launch the IDE</div>
       </div>`;
     ui.container.appendChild(empty);
   }
