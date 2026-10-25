@@ -63,7 +63,6 @@ ${START_COMMAND}
   let player = null;
   let paused = false;
   let booting = false;
-  let running = false;
   let initFsPromise = null;
   let runtimeBytes = 0;
   let runtimeFileCount = 0;
@@ -183,7 +182,6 @@ ${START_COMMAND}
 
       runtimeFileCount = initFs.length;
       log("Runtime filesystem prepared", `${runtimeFileCount} files`);
-      log("BGI stack verified", "graphics.h + GRAPHICS.LIB + EGAVGA.BGI");
       return initFs;
     })();
 
@@ -223,43 +221,23 @@ ${START_COMMAND}
     );
 
     add(
-      "ZIP loader",
-      typeof window.fflate?.unzip === "function" ? "pass" : "fail",
-      typeof window.fflate?.unzip === "function" ? "Async extraction ready" : "fflate did not load"
-    );
-
-    add(
-      "Clean session",
+      "Mouse mode",
       "pass",
-      "Persistent emulator filesystem restore is disabled"
-    );
-
-    add(
-      "SharedArrayBuffer",
-      typeof SharedArrayBuffer === "function" ? "pass" : "warn",
-      typeof SharedArrayBuffer === "function"
-        ? "Available; worker mode enabled"
-        : "Unavailable; render-thread fallback is supported"
+      "Host cursor / absolute mode; DOS autolock disabled"
     );
 
     try {
       const archiveInfo = runtimeBytes
         ? `${(runtimeBytes / 1024 / 1024).toFixed(2)} MiB • ${runtimeFileCount || "loaded"} files`
         : await probeArchive();
-      add("Optimized runtime", "pass", archiveInfo);
+      add("Runtime", "pass", archiveInfo);
     } catch (error) {
-      add("Optimized runtime", "fail", error.message);
+      add("Runtime", "fail", error.message);
     }
 
     renderChecks(checks);
     const failed = checks.filter((check) => check.result === "fail");
-
-    if (failed.length) {
-      log("Diagnostics completed with failures", failed.map((item) => item.name));
-    } else {
-      log("Diagnostics complete");
-    }
-
+    log(failed.length ? "Diagnostics completed with failures" : "Diagnostics complete");
     ui.runDiagnosticsBtn.disabled = false;
     return failed.length === 0;
   }
@@ -268,7 +246,6 @@ ${START_COMMAND}
     const current = player;
     player = null;
     paused = false;
-    running = false;
     booting = false;
 
     if (current) {
@@ -290,7 +267,6 @@ ${START_COMMAND}
     if (booting || player) return;
 
     booting = true;
-    running = false;
     setControls(false);
     log("Starting Turbo C3");
 
@@ -304,7 +280,6 @@ ${START_COMMAND}
 
       const initFs = await prepareInitFs();
       ui.container.replaceChildren();
-      log("Launching DOSBox with clean filesystem...");
 
       player = window.Dos(ui.container, {
         dosboxConf: DOSBOX_CONF,
@@ -313,18 +288,15 @@ ${START_COMMAND}
         autoStart: true,
         autoSave: false,
         quickSave: false,
+        mouseCapture: false,
+        noCursor: false,
         theme: "dark",
         backend: "dosbox",
         backendLocked: true,
-        mouseCapture: false,
-        noCursor: false,
         workerThread: typeof SharedArrayBuffer === "function",
         imageRendering: "pixelated",
         renderBackend: "webgl",
-        thinSidebar: true,
-        fsChanges: {
-          local: false,
-        },
+        fsChanges: { local: false },
         onEvent: (event) => {
           log(`js-dos event: ${event}`);
 
@@ -334,14 +306,9 @@ ${START_COMMAND}
           }
 
           if (event === "ci-ready") {
-            running = true;
             booting = false;
             setControls(true);
             ui.container.focus?.();
-          }
-
-          if (event === "exit") {
-            log("DOSBox exited");
           }
         },
       });
@@ -358,9 +325,7 @@ ${START_COMMAND}
     } catch (error) {
       log("Startup failed", error?.stack || error?.message || String(error));
       booting = false;
-      running = false;
       await stopPlayer({ quiet: true });
-      setControls(false);
       ui.diagnosticsPanel.hidden = false;
       ui.diagnosticsBtn.setAttribute("aria-expanded", "true");
       await runDiagnostics();
