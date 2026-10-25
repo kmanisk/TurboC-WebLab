@@ -8,7 +8,7 @@
   <title>Turbo C3 Web Lab</title>
 
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/js-dos@8.5.3/dist/js-dos.css" />
-  <link rel="stylesheet" href="styles.css?v=cursor1" />
+  <link rel="stylesheet" href="styles.css?v=layout2" />
   <script src="https://cdn.jsdelivr.net/npm/js-dos@8.5.3/dist/js-dos.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/fflate@0.8.2/umd/index.js" defer></script>
   <script src="app.js?v=9" defer></script>
@@ -16,9 +16,7 @@
 <body>
   <main class="shell">
     <header class="topbar">
-      <p class="eyebrow">DOS DEVELOPMENT ENVIRONMENT</p>
       <h1>Turbo C3 Web Lab</h1>
-      <p class="subtitle">Turbo C/C++ + graphics.h directly in your browser.</p>
     </header>
 
     <section class="toolbar" aria-label="Emulator controls">
@@ -38,17 +36,13 @@
       <div id="dos-container">
         <div class="empty-state" id="emptyState">
           <div class="terminal-mark" aria-hidden="true">C:\&gt;_</div>
-          <span class="empty-label">Turbo C3</span>
         </div>
       </div>
     </section>
 
     <section class="diagnostics" id="diagnosticsPanel" hidden>
       <div class="panel-heading">
-        <div>
-          <p class="eyebrow">ENVIRONMENT CHECK</p>
-          <h2>Diagnostics</h2>
-        </div>
+        <h2>Diagnostics</h2>
         <button class="ghost" id="runDiagnosticsBtn" type="button">Run checks</button>
       </div>
 
