@@ -7,33 +7,47 @@
   <meta name="description" content="Run Turbo C/C++ and Borland graphics.h/BGI programs directly in your browser." />
   <title>Turbo C3 Web Lab</title>
 
+  <link rel="icon" href="favicon.svg?v=1" type="image/svg+xml" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/js-dos@8.5.3/dist/js-dos.css" />
-  <link rel="stylesheet" href="styles.css?v=layout4" />
+  <link rel="stylesheet" href="styles.css?v=layout5" />
   <script src="https://cdn.jsdelivr.net/npm/js-dos@8.5.3/dist/js-dos.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/fflate@0.8.2/umd/index.js" defer></script>
-  <script src="app.js?v=10" defer></script>
+  <script src="app.js?v=11" defer></script>
 </head>
 <body>
   <main class="app">
     <header class="app-bar">
-      <h1>Turbo C3 Web Lab</h1>
+      <div class="brand-stack">
+        <div class="brand-line">
+          <img class="brand-icon" src="favicon.svg?v=1" alt="" aria-hidden="true" />
+          <h1>Turbo C3 Web Lab</h1>
+        </div>
 
-      <div class="control-group">
-        <button class="primary" id="startBtn" type="button">Start Turbo C3</button>
-        <div class="runtime-controls" id="runtimeControls" hidden>
-          <button id="restartBtn" type="button">Restart</button>
-          <button id="pauseBtn" type="button">Pause</button>
-          <button id="fullscreenBtn" type="button">Fullscreen</button>
-          <button class="danger" id="stopBtn" type="button">Stop</button>
+        <div class="control-group">
+          <button class="primary" id="startBtn" type="button">Start Turbo C3</button>
+          <div class="runtime-controls" id="runtimeControls" hidden>
+            <button id="restartBtn" type="button">Restart</button>
+            <button id="pauseBtn" type="button">Pause</button>
+            <button id="fullscreenBtn" type="button">Fullscreen</button>
+            <button class="danger" id="stopBtn" type="button">Stop</button>
+          </div>
         </div>
       </div>
 
       <button class="diagnostics-toggle" id="diagnosticsBtn" type="button" aria-expanded="false">Diagnostics</button>
     </header>
 
-    <section class="stage" id="emulatorStage" aria-label="Turbo C3 emulator">
+    <section class="stage" aria-label="Turbo C3 emulator">
       <div class="emulator-frame">
-        <div id="dos-container"></div>
+        <div id="dos-container">
+          <div class="empty-state" id="emptyState">
+            <div class="terminal-window">
+              <div class="terminal-mark" aria-hidden="true">C:\&gt;_</div>
+              <div class="empty-label">Turbo C3</div>
+              <div class="empty-hint">Ready to launch</div>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
 
