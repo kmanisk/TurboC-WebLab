@@ -1,83 +1,85 @@
 # TurboC Web Lab
 
-**Browser-based Turbo C/C++ IDE for legacy `graphics.h` and BGI computer graphics coursework**, powered by js-dos and WebAssembly.
+Browser-based **Turbo C/C++ + Borland `graphics.h` / BGI** environment powered by js-dos and WebAssembly.
 
-TurboC Web Lab aims to help students run classic Borland Turbo C/C++ programs, including DOS-era graphics exercises, in a modern browser without manually installing and configuring DOSBox. **The final browser runtime and `graphics.h` compatibility still require end-to-end testing**; this is an experimental compatibility environment, not a general-purpose modern C++ compiler.
+**Live:** https://kmanisk.github.io/TurboC-WebLab/
 
-The project launches the legacy Turbo C3 environment from a modern browser without requiring a local DOSBox or Turbo C installation. `Turboc3.zip` is treated as the source archive; the browser combines it with `.jsdos/dosbox.conf` to build a valid js-dos bundle at runtime and starts `TURBOC3\BIN\TC.EXE`.
+## What it does
 
-## Why I built this
+TurboC Web Lab runs the legacy Turbo C3 development environment directly in a modern browser. It is aimed at computer-graphics coursework and other older programs that depend on Borland's DOS-era `graphics.h` / BGI stack.
 
-This project started from a very practical frustration. In many computer science courses, especially introductory **Computer Graphics** classes, students are still expected to write C/C++ programs using the legacy `graphics.h` / BGI environment. Those programs are commonly demonstrated through Turbo C or Turbo C++ running under DOS or DOSBox.
+The deployed environment has been verified end-to-end with a real BGI program: `SHOWCASE.C` compiles with Turbo C, links against `GRAPHICS.LIB`, loads `EGAVGA.BGI`, and renders graphics in the browser.
 
-For me, repeatedly setting up and working inside that old DOS-based environment was frustrating. Modern compilers and most online C/C++ playgrounds work well for standard C and C++, but they generally do not reproduce the original Borland `graphics.h` environment that these coursework programs depend on. That meant something as simple as drawing shapes, experimenting with BGI primitives, or building small graphics animations still pushed students back toward a decades-old toolchain.
+## Verified graphics.h support
 
-A friend and I started asking a simple question: **what if the whole environment could just run in the browser?**
+The runtime contains and validates:
 
-While exploring that idea, we ended up learning about **WebAssembly (Wasm)**, browser sandboxing, emulation, Web Workers, `SharedArrayBuffer`, persistent browser storage, and the amount of computation modern browsers can safely perform. WebAssembly is not an assembly language in the traditional CPU-specific sense; it is a portable low-level bytecode designed to execute efficiently inside a browser sandbox. Technologies built on top of it can run software that was never originally designed for the web, which is one reason browser-based emulators and ports of older games are practical today.
+- `TURBOC3/INCLUDE/GRAPHICS.H`
+- `TURBOC3/LIB/GRAPHICS.LIB`
+- `TURBOC3/BGI/EGAVGA.BGI`
+- the Turbo C compiler/linker toolchain
 
-That led us to experiment with running a DOS environment through **js-dos**, loading the original Turbo C3 toolchain inside it, and checking whether legacy `graphics.h` programs could work without making the student manually configure DOSBox.
+The included `examples/SHOWCASE.C` draws a rectangle, circle, crosshair lines, and BGI text. The same source is included in the runtime as `C:\TURBOC3\PROJECTS\SHOWCASE.C` and opens automatically when Turbo C starts.
 
-After a fair amount of experimentation, debugging, and learning how the browser runtime behaves, the idea became this project: a **zero-install browser-accessible Turbo C3 environment** aimed particularly at the kind of legacy C/C++ graphics coursework that is still taught today.
+A developer-only automatic verification mode is available at:
 
-The project did not make DOS irrelevant for me—in fact, working through the problem taught me more about DOS, emulation, browser runtimes, and compatibility layers than simply avoiding the old environment would have. What began as an attempt to remove a frustrating setup step became an exploration of how modern web technology can keep legacy development environments usable.
+```text
+https://kmanisk.github.io/TurboC-WebLab/?bgi-test=1
+```
 
-## Who this is for
+That mode compiles and runs `SHOWCASE.C` directly through the DOS toolchain, bypassing IDE interaction. It is intended for regression testing rather than normal use.
 
-Students working through legacy **Computer Graphics** coursework, educators maintaining Turbo C/C++ teaching examples, and developers exploring **DOS emulation in the browser**. This environment targets the Borland BGI `graphics.h` workflow; it does not provide the modern standard C++ graphics API.
-
-**Common questions:**
-
-**Can I run `graphics.h` C/C++ programs online?** This project is designed to host the legacy Turbo C3 and BGI environment in a browser. Specific programs and graphics modes need verification on the deployed emulator.
-
-**Is this a modern C++ online compiler?** No. It emulates a legacy DOS toolchain for compatibility with older coursework.
-
-**Do I need DOSBox installed?** No local DOSBox installation is intended; the DOS runtime runs in the browser via js-dos.
-
-## What this project does
-
-- Runs Turbo C3 directly in a modern browser.
-- Builds a valid js-dos runtime bundle in-browser from `Turboc3.zip` plus `.jsdos/dosbox.conf`.
-- Starts the emulator through the supported js-dos player API.
-- Provides start, restart, pause/resume, save-state, fullscreen, and stop controls.
-- Persists local filesystem changes through js-dos/IndexedDB when supported.
-- Uses a stable save key even though the runtime bundle is created as a temporary Blob URL.
-- Includes browser, archive, and bundle-builder diagnostics with a runtime log.
-- Works as a static site; no application backend is required.
-
-## Architecture
+## Current architecture
 
 ```text
 Browser
   |
   +-- index.html
-  |    +-- styles.css
-  |    +-- app.js
-  |    +-- js-dos.min.css
-  |    +-- js-dos.min.js
-  |    +-- js-dos emulators bundle builder
-  |
+  +-- styles.css
   +-- app.js
-       |
-       +-- fetch Turboc3.zip
-       +-- fetch .jsdos/dosbox.conf
-       +-- build valid js-dos bundle in memory
-       |
-       +-- js-dos / WebAssembly DOS runtime
-              |
-              +-- TURBOC3/
-                   +-- BIN/TC.EXE
-                   +-- INCLUDE/
-                   +-- LIB/
-                   +-- BGI/
-                   +-- Projects/
+  |
+  +-- fetch same-origin Turboc3.zip (~2.46 MiB)
+  +-- fflate async ZIP extraction
+  +-- js-dos initFs (~128 files)
+  +-- js-dos 8.5.3 / WebAssembly
+        |
+        +-- Turbo C3 IDE
+        +-- graphics.h / GRAPHICS.LIB / BGI drivers
+        +-- Projects/SHOWCASE.C
 ```
+
+The site no longer builds a `.jsdos` bundle in the browser. The old bundle-builder path was unreliable with legacy DOS filenames, so the runtime is unpacked in JavaScript and passed directly to js-dos through `initFs`.
+
+## Runtime optimizations
+
+- js-dos is pinned to **8.5.3** instead of `latest`.
+- ZIP extraction uses asynchronous `fflate.unzip()` rather than blocking synchronous extraction.
+- Runtime payload is reduced to roughly **2.46 MiB / 128 files**.
+- Legacy documentation, class-library samples, compiled sample outputs, and unused demo files are excluded from the browser runtime.
+- Runtime downloading begins early when the Start button is hovered or focused.
+- WebGL rendering is requested when supported.
+- `SharedArrayBuffer` is optional; the app uses js-dos's render-thread fallback when cross-origin isolation is unavailable.
+
+## Clean sessions
+
+The public lab intentionally disables js-dos filesystem restore/persistence. Each page load starts from a known clean Turbo C filesystem.
+
+This prevents Turbo C desktop/session state from previous browser runs from reopening old source files or unrelated tabs. It also makes classroom/demo behavior deterministic.
+
+## Controls
+
+Before launch the UI stays minimal: **Start Turbo C3** and **Diagnostics**.
+
+After the emulator starts, the following controls are available:
+
+- Restart
+- Pause / Resume
+- Fullscreen
+- Stop
 
 ## Run locally
 
-Do **not** open `index.html` directly with `file://`. Serve the repository over HTTP.
-
-### Python
+Serve the repository over HTTP; do not open `index.html` with `file://`.
 
 ```bash
 python3 -m http.server 8080
@@ -89,78 +91,24 @@ Then open:
 http://localhost:8080
 ```
 
-### VS Code Live Server
-
-The repository contains a `.vscode/settings.json` configuration for Live Server. Start Live Server from the repository root and open the generated localhost URL.
-
-## Startup configuration
-
-The DOS startup configuration is stored in:
-
-```text
-.jsdos/dosbox.conf
-```
-
-It mounts the runtime filesystem, enters `TURBOC3\BIN`, and launches:
-
-```text
-TC.EXE
-```
-
-The page injects this configuration into a js-dos bundle at runtime. This avoids depending on undocumented JavaScript startup options and also means the committed `Turboc3.zip` does not need to be trusted to already contain correct js-dos metadata.
-
-## Diagnostics
-
-Open **Diagnostics** in the page to inspect:
-
-- HTTP/file protocol status
-- WebAssembly support
-- js-dos player availability
-- js-dos bundle-builder availability
-- IndexedDB availability
-- SharedArrayBuffer availability
-- `Turboc3.zip` reachability and reported size
-- js-dos runtime events and errors
-
-`SharedArrayBuffer` is treated as an optimization warning rather than a hard requirement because browser isolation policies vary.
-
 ## Repository layout
 
 ```text
 .
-├── .jsdos/
-│   └── dosbox.conf
-├── .vscode/
-│   └── settings.json
-├── TURBOC3/              # extracted legacy environment
-├── Turboc3.zip           # source archive
-├── app.js                # bundle builder + emulator controller
-├── index.html            # web UI
-├── styles.css            # responsive UI styling
-├── js-dos.min.css
-└── js-dos.min.js
+├── examples/
+│   └── SHOWCASE.C
+├── Turboc3.zip        # optimized browser runtime
+├── app.js             # runtime loader + js-dos controller
+├── index.html
+└── styles.css
 ```
 
-## External runtime dependency
+js-dos and fflate are loaded from pinned CDN versions; the Turbo C runtime ZIP is served from the same GitHub Pages origin.
 
-The page loads the current js-dos emulator bundle-builder from:
+## Scope
 
-```text
-https://v8.js-dos.com/latest/emulators/emulators.js
-```
-
-The DOS runtime may also load js-dos emulator deployment files from js-dos infrastructure. For a fully offline deployment, those runtime assets should be vendored into the repository and `pathPrefix` should be pointed at the local copy.
-
-## Notes
-
-- The emulator wrapper is intentionally separated from the legacy Turbo C files.
-- Local save-state behavior depends on browser storage availability.
-- Replacing `Turboc3.zip` does not require manually editing the archive to add `.jsdos/dosbox.conf`; the page injects the config while building the runtime bundle.
-
-## Discoverability and project documentation
-
-This README uses descriptive, problem-focused language so students and search systems can determine what the project does. Prefer verified examples, clear compatibility notes, screenshots, and accessible deployment documentation over keyword stuffing or unproven claims. No optimization guarantees inclusion in AI answers.
+This is a compatibility environment for legacy Turbo C/C++ and Borland BGI coursework. It is **not** a modern C++ compiler or modern graphics API.
 
 ## Redistribution notice
 
-Turbo C/Turbo C++ is legacy third-party software. Before redistributing its binaries publicly, verify that you have the legal right to distribute the included copy. The js-dos wrapper code and the legacy compiler binaries have separate licensing considerations.
+Turbo C/Turbo C++ is legacy third-party software. Verify that you have the legal right to redistribute any included compiler/runtime binaries. The web wrapper and third-party legacy binaries have separate licensing considerations.
