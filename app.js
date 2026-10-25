@@ -1,9 +1,19 @@
 (() => {
   "use strict";
 
-  const SOURCE_ARCHIVE_URL = "Turboc3.zip";
-  const SAVE_KEY = "turbo-c3-web-lab-v3";
-  const EMULATORS_PATH_PREFIX = "https://cdn.jsdelivr.net/npm/js-dos@8.5.3/dist/emulators/";
+  const SOURCE_ARCHIVE_URL =
+    "https://github.com/kmanisk/TurboC-WebLab/releases/download/v1.0.0/Turboc3-optimized.zip";
+  const EMULATORS_PATH_PREFIX =
+    "https://cdn.jsdelivr.net/npm/js-dos@8.5.3/dist/emulators/";
+  const SHOWCASE_PATH = "TURBOC3/Projects/SHOWCASE.C";
+  const REQUIRED_RUNTIME_FILES = [
+    "TURBOC3/BIN/TC.EXE",
+    "TURBOC3/INCLUDE/GRAPHICS.H",
+    "TURBOC3/LIB/GRAPHICS.LIB",
+    "TURBOC3/BGI/EGAVGA.BGI",
+    SHOWCASE_PATH,
+  ];
+
   const DOSBOX_CONF = `[sdl]
 fullscreen=false
 autolock=true
@@ -17,7 +27,7 @@ mount c .
 c:
 cd TURBOC3
 cd BIN
-TC.EXE C:\TURBOC3\PROJECTS\BGIDEMO.C
+TC.EXE C:\\TURBOC3\\PROJECTS\\SHOWCASE.C
 `;
 
   const $ = (id) => document.getElementById(id);
@@ -27,7 +37,6 @@ TC.EXE C:\TURBOC3\PROJECTS\BGIDEMO.C
     runtimeControls: $("runtimeControls"),
     restartBtn: $("restartBtn"),
     pauseBtn: $("pauseBtn"),
-    saveBtn: $("saveBtn"),
     fullscreenBtn: $("fullscreenBtn"),
     stopBtn: $("stopBtn"),
     diagnosticsBtn: $("diagnosticsBtn"),
@@ -39,11 +48,12 @@ TC.EXE C:\TURBOC3\PROJECTS\BGIDEMO.C
   };
 
   let player = null;
-  let commandInterface = null;
   let paused = false;
   let booting = false;
   let running = false;
   let initFsPromise = null;
+  let runtimeBytes = 0;
+  let runtimeFileCount = 0;
 
   function timestamp() {
     return new Date().toISOString().replace("T", " ").replace("Z", " UTC");
@@ -67,7 +77,6 @@ TC.EXE C:\TURBOC3\PROJECTS\BGIDEMO.C
     const disabled = !isRunning || booting;
     ui.restartBtn.disabled = disabled;
     ui.pauseBtn.disabled = disabled;
-    ui.saveBtn.disabled = disabled;
     ui.fullscreenBtn.disabled = disabled;
     ui.stopBtn.disabled = disabled;
   }
@@ -105,11 +114,11 @@ TC.EXE C:\TURBOC3\PROJECTS\BGIDEMO.C
   async function probeArchive() {
     const response = await fetch(SOURCE_ARCHIVE_URL, {
       method: "HEAD",
-      cache: "no-store",
+      cache: "force-cache",
     });
 
     if (!response.ok) {
-      throw new Error(`${SOURCE_ARCHIVE_URL} returned HTTP ${response.status}`);
+      throw new Error(`Runtime archive returned HTTP ${response.status}`);
     }
 
     const bytes = Number(response.headers.get("content-length"));
@@ -126,14 +135,15 @@ TC.EXE C:\TURBOC3\PROJECTS\BGIDEMO.C
         throw new Error("ZIP loader failed to load.");
       }
 
-      log("Downloading Turbo C3 archive...");
+      log("Downloading optimized Turbo C3 runtime...");
       const response = await fetch(SOURCE_ARCHIVE_URL, { cache: "force-cache" });
       if (!response.ok) {
-        throw new Error(`${SOURCE_ARCHIVE_URL} returned HTTP ${response.status}`);
+        throw new Error(`Runtime archive returned HTTP ${response.status}`);
       }
 
       const compressed = new Uint8Array(await response.arrayBuffer());
-      log("Turbo C3 archive downloaded", `${(compressed.byteLength / 1024 / 1024).toFixed(2)} MiB`);
+      runtimeBytes = compressed.byteLength;
+      log("Runtime downloaded", `${(runtimeBytes / 1024 / 1024).toFixed(2)} MiB`);
 
       const files = await new Promise((resolve, reject) => {
         window.fflate.unzip(compressed, (error, extracted) => {
@@ -141,11 +151,10 @@ TC.EXE C:\TURBOC3\PROJECTS\BGIDEMO.C
           else resolve(extracted);
         });
       });
-      if (!files["TURBOC3/BIN/TC.EXE"]) {
-        throw new Error("TURBOC3/BIN/TC.EXE is missing from the archive.");
-      }
-      if (!files["TURBOC3/Projects/BGIDEMO.C"]) {
-        throw new Error("BGIDEMO.C is missing from the archive.");
+
+      const missing = REQUIRED_RUNTIME_FILES.filter((path) => !files[path]);
+      if (missing.length) {
+        throw new Error(`Runtime is missing: ${missing.join(", ")}`);
       }
 
       const initFs = Object.entries(files)
@@ -153,10 +162,12 @@ TC.EXE C:\TURBOC3\PROJECTS\BGIDEMO.C
         .map(([path, contents]) => ({ path, contents }));
 
       if (!initFs.length) {
-        throw new Error("Turbo C3 archive extracted with no files.");
+        throw new Error("Turbo C3 runtime extracted with no files.");
       }
 
-      log("Turbo C3 filesystem prepared", `${initFs.length} files`);
+      runtimeFileCount = initFs.length;
+      log("Runtime filesystem prepared", `${runtimeFileCount} files`);
+      log("BGI stack verified", "graphics.h + GRAPHICS.LIB + EGAVGA.BGI");
       return initFs;
     })();
 
@@ -179,7 +190,7 @@ TC.EXE C:\TURBOC3\PROJECTS\BGIDEMO.C
       "Protocol",
       location.protocol === "file:" ? "fail" : "pass",
       location.protocol === "file:"
-        ? "Use an HTTP server; file:// cannot run js-dos correctly."
+        ? "Use HTTP/HTTPS; file:// cannot run js-dos correctly."
         : `${location.protocol}//`
     );
 
@@ -190,7 +201,7 @@ TC.EXE C:\TURBOC3\PROJECTS\BGIDEMO.C
     );
 
     add(
-      "js-dos",
+      "js-dos 8.5.3",
       typeof window.Dos === "function" ? "pass" : "fail",
       typeof window.Dos === "function" ? "Player API loaded" : "js-dos.js did not load"
     );
@@ -202,24 +213,26 @@ TC.EXE C:\TURBOC3\PROJECTS\BGIDEMO.C
     );
 
     add(
-      "IndexedDB",
-      "indexedDB" in window ? "pass" : "warn",
-      "indexedDB" in window ? "Available for local persistence" : "Local persistence may be unavailable"
+      "Clean session",
+      "pass",
+      "Persistent emulator filesystem restore is disabled"
     );
 
     add(
       "SharedArrayBuffer",
       typeof SharedArrayBuffer === "function" ? "pass" : "warn",
       typeof SharedArrayBuffer === "function"
-        ? "Available"
-        : "Unavailable; not required for the direct filesystem loader"
+        ? "Available; worker mode enabled"
+        : "Unavailable; render-thread fallback is supported"
     );
 
     try {
-      const archiveInfo = await probeArchive();
-      add("Turbo C3 archive", "pass", `${SOURCE_ARCHIVE_URL} • ${archiveInfo}`);
+      const archiveInfo = runtimeBytes
+        ? `${(runtimeBytes / 1024 / 1024).toFixed(2)} MiB • ${runtimeFileCount || "loaded"} files`
+        : await probeArchive();
+      add("Optimized runtime", "pass", archiveInfo);
     } catch (error) {
-      add("Turbo C3 archive", "fail", error.message);
+      add("Optimized runtime", "fail", error.message);
     }
 
     renderChecks(checks);
@@ -238,7 +251,6 @@ TC.EXE C:\TURBOC3\PROJECTS\BGIDEMO.C
   async function stopPlayer({ quiet = false } = {}) {
     const current = player;
     player = null;
-    commandInterface = null;
     paused = false;
     running = false;
     booting = false;
@@ -276,24 +288,27 @@ TC.EXE C:\TURBOC3\PROJECTS\BGIDEMO.C
 
       const initFs = await prepareInitFs();
       ui.container.replaceChildren();
-      log("Launching DOSBox with prepared filesystem...");
+      log("Launching DOSBox with clean filesystem...");
 
       player = window.Dos(ui.container, {
         dosboxConf: DOSBOX_CONF,
         initFs,
         pathPrefix: EMULATORS_PATH_PREFIX,
         autoStart: true,
-        autoSave: true,
+        autoSave: false,
+        quickSave: false,
         theme: "dark",
         backend: "dosbox",
         backendLocked: true,
+        workerThread: typeof SharedArrayBuffer === "function",
         imageRendering: "pixelated",
+        renderBackend: "webgl",
         renderAspect: "4/3",
+        thinSidebar: true,
         fsChanges: {
-          local: true,
-          urlToKey: async () => SAVE_KEY,
+          local: false,
         },
-        onEvent: (event, arg) => {
+        onEvent: (event) => {
           log(`js-dos event: ${event}`);
 
           if (event === "emu-ready") {
@@ -302,7 +317,6 @@ TC.EXE C:\TURBOC3\PROJECTS\BGIDEMO.C
           }
 
           if (event === "ci-ready") {
-            commandInterface = arg || null;
             running = true;
             booting = false;
             setControls(true);
@@ -310,7 +324,7 @@ TC.EXE C:\TURBOC3\PROJECTS\BGIDEMO.C
           }
 
           if (event === "exit") {
-            log("DOSBox exited", arg);
+            log("DOSBox exited");
           }
         },
       });
@@ -334,17 +348,6 @@ TC.EXE C:\TURBOC3\PROJECTS\BGIDEMO.C
     log("Restart requested");
     await stopPlayer({ quiet: true });
     await boot();
-  }
-
-  async function saveState() {
-    if (!player) return;
-
-    try {
-      const saved = await player.save();
-      log(saved ? "Local emulator state saved" : "Save request completed without new changes");
-    } catch (error) {
-      log("Save failed", error?.message || String(error));
-    }
   }
 
   function togglePause() {
@@ -373,9 +376,10 @@ TC.EXE C:\TURBOC3\PROJECTS\BGIDEMO.C
   }
 
   ui.startBtn.addEventListener("click", boot);
+  ui.startBtn.addEventListener("pointerenter", () => void prepareInitFs(), { once: true });
+  ui.startBtn.addEventListener("focus", () => void prepareInitFs(), { once: true });
   ui.restartBtn.addEventListener("click", restart);
   ui.pauseBtn.addEventListener("click", togglePause);
-  ui.saveBtn.addEventListener("click", saveState);
   ui.fullscreenBtn.addEventListener("click", enterFullscreen);
   ui.stopBtn.addEventListener("click", () => stopPlayer());
   ui.diagnosticsBtn.addEventListener("click", toggleDiagnostics);
