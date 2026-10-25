@@ -4,6 +4,7 @@
   const SOURCE_ARCHIVE_URL = "Turboc3.zip";
   const DOSBOX_CONFIG_URL = ".jsdos/dosbox.conf";
   const SAVE_KEY = "turbo-c3-web-lab-v1";
+  const EMULATORS_PATH_PREFIX = "https://v8.js-dos.com/latest/emulators/";
 
   const $ = (id) => document.getElementById(id);
   const ui = {
@@ -110,6 +111,9 @@
     if (typeof window.emulators?.bundle !== "function") {
       throw new Error("js-dos bundle builder failed to load.");
     }
+
+    window.emulators.pathPrefix = EMULATORS_PATH_PREFIX;
+    window.emulators.pathSuffix = "";
 
     log("Building js-dos runtime bundle...");
     const configResponse = await fetch(DOSBOX_CONFIG_URL, { cache: "no-store" });
@@ -247,6 +251,8 @@
 
       player = window.Dos(ui.container, {
         url: bundleUrl,
+        pathPrefix: EMULATORS_PATH_PREFIX,
+        pathSuffix: "",
         autoStart: true,
         autoSave: true,
         theme: "dark",
