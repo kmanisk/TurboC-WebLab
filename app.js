@@ -258,6 +258,7 @@
         theme: "dark",
         backend: "dosbox",
         backendLocked: true,
+        workerThread: typeof SharedArrayBuffer === "function",
         imageRendering: "pixelated",
         renderAspect: "4/3",
         fsChanges: {
