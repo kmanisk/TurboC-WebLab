@@ -23,9 +23,8 @@ TC.EXE
   const $ = (id) => document.getElementById(id);
   const ui = {
     container: $("dos-container"),
-    statusPill: $("statusPill"),
-    statusText: $("statusText"),
     startBtn: $("startBtn"),
+    runtimeControls: $("runtimeControls"),
     restartBtn: $("restartBtn"),
     pauseBtn: $("pauseBtn"),
     saveBtn: $("saveBtn"),
@@ -43,6 +42,7 @@ TC.EXE
   let commandInterface = null;
   let paused = false;
   let booting = false;
+  let running = false;
   let initFsPromise = null;
 
   function timestamp() {
@@ -58,18 +58,18 @@ TC.EXE
     console.log(`[Turbo C3] ${message}`, data ?? "");
   }
 
-  function setStatus(state, text) {
-    ui.statusPill.dataset.state = state;
-    ui.statusText.textContent = text;
-  }
+  function setControls(isRunning) {
+    ui.startBtn.hidden = isRunning;
+    ui.startBtn.disabled = booting;
+    ui.startBtn.textContent = booting ? "Starting…" : "Start Turbo C3";
 
-  function setControls(running) {
-    ui.startBtn.disabled = running || booting;
-    ui.restartBtn.disabled = !running || booting;
-    ui.pauseBtn.disabled = !running || booting;
-    ui.saveBtn.disabled = !running || booting;
-    ui.fullscreenBtn.disabled = !running || booting;
-    ui.stopBtn.disabled = !running || booting;
+    ui.runtimeControls.hidden = !isRunning;
+    const disabled = !isRunning || booting;
+    ui.restartBtn.disabled = disabled;
+    ui.pauseBtn.disabled = disabled;
+    ui.saveBtn.disabled = disabled;
+    ui.fullscreenBtn.disabled = disabled;
+    ui.stopBtn.disabled = disabled;
   }
 
   function showEmptyState() {
@@ -80,8 +80,7 @@ TC.EXE
     empty.id = "emptyState";
     empty.innerHTML = `
       <div class="terminal-mark" aria-hidden="true">C:\\&gt;_</div>
-      <h2>Ready to boot</h2>
-      <p>Start the emulator to launch <code>TURBOC3\\BIN\\TC.EXE</code>.</p>`;
+      <span class="empty-label">Turbo C3</span>`;
     ui.container.appendChild(empty);
   }
 
@@ -127,9 +126,7 @@ TC.EXE
         throw new Error("ZIP loader failed to load.");
       }
 
-      setStatus("loading", "Downloading Turbo C3...");
       log("Downloading Turbo C3 archive...");
-
       const response = await fetch(SOURCE_ARCHIVE_URL, { cache: "force-cache" });
       if (!response.ok) {
         throw new Error(`${SOURCE_ARCHIVE_URL} returned HTTP ${response.status}`);
@@ -138,9 +135,7 @@ TC.EXE
       const compressed = new Uint8Array(await response.arrayBuffer());
       log("Turbo C3 archive downloaded", `${(compressed.byteLength / 1024 / 1024).toFixed(2)} MiB`);
 
-      setStatus("loading", "Extracting Turbo C3...");
       const files = window.fflate.unzipSync(compressed);
-
       if (!files["TURBOC3/BIN/TC.EXE"]) {
         throw new Error("TURBOC3/BIN/TC.EXE is missing from the archive.");
       }
@@ -223,10 +218,8 @@ TC.EXE
     const failed = checks.filter((check) => check.result === "fail");
 
     if (failed.length) {
-      setStatus("error", `${failed.length} check${failed.length === 1 ? "" : "s"} failed`);
       log("Diagnostics completed with failures", failed.map((item) => item.name));
     } else {
-      if (!player) setStatus("ready", "Ready");
       log("Diagnostics complete");
     }
 
@@ -239,6 +232,8 @@ TC.EXE
     player = null;
     commandInterface = null;
     paused = false;
+    running = false;
+    booting = false;
 
     if (current) {
       try {
@@ -253,15 +248,14 @@ TC.EXE
     showEmptyState();
     ui.pauseBtn.textContent = "Pause";
     setControls(false);
-    if (!quiet) setStatus("ready", "Ready");
   }
 
   async function boot() {
     if (booting || player) return;
 
     booting = true;
+    running = false;
     setControls(false);
-    setStatus("loading", "Preparing...");
     log("Starting Turbo C3");
 
     try {
@@ -273,9 +267,7 @@ TC.EXE
       }
 
       const initFs = await prepareInitFs();
-
       ui.container.replaceChildren();
-      setStatus("loading", "Starting DOSBox...");
       log("Launching DOSBox with prepared filesystem...");
 
       player = window.Dos(ui.container, {
@@ -303,7 +295,8 @@ TC.EXE
 
           if (event === "ci-ready") {
             commandInterface = arg || null;
-            setStatus("running", "Turbo C3 running");
+            running = true;
+            booting = false;
             setControls(true);
             ui.container.focus?.();
           }
@@ -317,19 +310,15 @@ TC.EXE
       if (typeof player.setNoCloud === "function") {
         player.setNoCloud(true);
       }
-
-      setControls(true);
     } catch (error) {
       log("Startup failed", error?.stack || error?.message || String(error));
+      booting = false;
+      running = false;
       await stopPlayer({ quiet: true });
-      setStatus("error", "Startup failed");
       setControls(false);
       ui.diagnosticsPanel.hidden = false;
       ui.diagnosticsBtn.setAttribute("aria-expanded", "true");
       await runDiagnostics();
-    } finally {
-      booting = false;
-      setControls(Boolean(player));
     }
   }
 
@@ -347,7 +336,6 @@ TC.EXE
       log(saved ? "Local emulator state saved" : "Save request completed without new changes");
     } catch (error) {
       log("Save failed", error?.message || String(error));
-      setStatus("error", "Save failed");
     }
   }
 
@@ -357,7 +345,6 @@ TC.EXE
     paused = !paused;
     player.setPaused(paused);
     ui.pauseBtn.textContent = paused ? "Resume" : "Pause";
-    setStatus(paused ? "loading" : "running", paused ? "Paused" : "Turbo C3 running");
     log(paused ? "Emulation paused" : "Emulation resumed");
   }
 
@@ -371,6 +358,10 @@ TC.EXE
     const willOpen = ui.diagnosticsPanel.hidden;
     ui.diagnosticsPanel.hidden = !willOpen;
     ui.diagnosticsBtn.setAttribute("aria-expanded", String(willOpen));
+
+    if (willOpen && ui.checks.childElementCount === 0) {
+      void runDiagnostics();
+    }
   }
 
   ui.startBtn.addEventListener("click", boot);
@@ -391,10 +382,8 @@ TC.EXE
     log("Unhandled promise rejection", event.reason?.stack || event.reason?.message || String(event.reason));
   });
 
-  document.addEventListener("DOMContentLoaded", async () => {
+  document.addEventListener("DOMContentLoaded", () => {
     setControls(false);
     log("Turbo C3 Web Lab initialized");
-    const ok = await runDiagnostics();
-    if (ok) setStatus("ready", "Ready");
   });
 })();
