@@ -37,12 +37,12 @@ code, pre { font-family: inherit; }
 .app {
   min-height: 100vh;
   width: 100%;
-  padding: clamp(28px, 4vh, 44px) 20px 34px;
+  padding: clamp(30px, 4.5vh, 50px) clamp(28px, 4vw, 64px) 40px;
 }
 
 .hero-header {
-  width: min(920px, calc(100vw - 40px));
-  margin: 0 auto 30px;
+  width: min(1160px, calc(100vw - 72px));
+  margin: 0 auto 34px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -52,13 +52,13 @@ code, pre { font-family: inherit; }
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 20px;
+  gap: 22px;
   min-width: 0;
 }
 
 .brand-icon {
-  width: clamp(46px, 4vw, 58px);
-  height: clamp(46px, 4vw, 58px);
+  width: clamp(48px, 4vw, 60px);
+  height: clamp(48px, 4vw, 60px);
   flex: 0 0 auto;
   image-rendering: pixelated;
   filter: drop-shadow(0 0 14px rgba(86, 215, 255, 0.08));
@@ -70,7 +70,7 @@ h1 {
   align-items: baseline;
   gap: 0.34em;
   color: #eef3f8;
-  font-size: clamp(2rem, 3.3vw, 3rem);
+  font-size: clamp(2.05rem, 3.2vw, 3.05rem);
   line-height: 1;
   font-weight: 650;
   letter-spacing: 0.015em;
@@ -91,15 +91,15 @@ h2 { font-size: 1rem; }
 }
 
 .emulator-frame {
-  width: min(920px, calc(100vw - 40px));
-  height: clamp(430px, calc(100dvh - 250px), 632px);
-  min-height: 430px;
+  width: min(1160px, calc(100vw - 72px));
+  height: clamp(500px, calc(100dvh - 270px), 690px);
+  min-height: 500px;
   overflow: hidden;
   border: 1px solid var(--border-strong);
   border-radius: 10px;
   background: #05080d;
   box-shadow:
-    0 30px 90px rgba(0, 0, 0, 0.26),
+    0 34px 100px rgba(0, 0, 0, 0.28),
     inset 0 0 0 1px rgba(255, 255, 255, 0.012);
 }
 
@@ -117,7 +117,7 @@ h2 { font-size: 1rem; }
   inset: 0;
   display: grid;
   place-items: center;
-  padding: 28px;
+  padding: 34px;
   background:
     linear-gradient(rgba(86, 215, 255, 0.035) 1px, transparent 1px),
     linear-gradient(90deg, rgba(86, 215, 255, 0.035) 1px, transparent 1px),
@@ -127,22 +127,22 @@ h2 { font-size: 1rem; }
 }
 
 .terminal-window {
-  width: min(400px, 76vw);
-  padding: 44px 30px 28px;
+  width: min(430px, 76vw);
+  padding: 48px 34px 30px;
   text-align: center;
   border: 1px solid var(--border-strong);
   border-radius: 7px;
   background:
     linear-gradient(180deg, rgba(13, 19, 28, 0.98), rgba(7, 10, 15, 0.99));
   box-shadow:
-    0 22px 58px rgba(0, 0, 0, 0.44),
+    0 24px 64px rgba(0, 0, 0, 0.46),
     inset 0 0 0 1px rgba(255, 255, 255, 0.012);
 }
 
 .terminal-mark {
   color: var(--accent);
   font-family: "Iosevka", "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
-  font-size: clamp(3rem, 6vw, 4.4rem);
+  font-size: clamp(3.1rem, 6vw, 4.5rem);
   font-weight: 800;
   line-height: 1;
   letter-spacing: 0.03em;
@@ -164,18 +164,17 @@ h2 { font-size: 1rem; }
   font-size: clamp(0.76rem, 1vw, 0.9rem);
 }
 
-/* Keep the host cursor visible. js-dos owns its own render geometry and pointer mapping. */
 #dos-container canvas {
   cursor: default !important;
 }
 
 .launch-controls {
-  width: min(920px, calc(100vw - 40px));
-  margin: 22px auto 0;
+  width: min(1160px, calc(100vw - 72px));
+  margin: 26px auto 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 13px;
+  gap: 14px;
   flex-wrap: wrap;
 }
 
@@ -185,7 +184,7 @@ h2 { font-size: 1rem; }
   align-items: center;
   justify-content: center;
   flex-wrap: wrap;
-  gap: 9px;
+  gap: 10px;
 }
 
 button {
@@ -265,8 +264,8 @@ button.text-button {
 }
 
 .diagnostics {
-  width: min(920px, calc(100vw - 40px));
-  margin: 16px auto 0;
+  width: min(1160px, calc(100vw - 72px));
+  margin: 18px auto 0;
   padding: 14px;
   border: 1px solid var(--border);
   border-radius: 8px;
