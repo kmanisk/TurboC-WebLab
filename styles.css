@@ -26,30 +26,29 @@ code, pre { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospac
 [hidden] { display: none !important; }
 
 .shell {
-  width: min(1500px, 100%);
+  width: min(1040px, 100%);
   margin: 0 auto;
-  padding: 22px clamp(14px, 3vw, 36px) 24px;
+  padding: 18px clamp(12px, 2.5vw, 24px) 22px;
 }
 
-.topbar { margin-bottom: 14px; }
-.eyebrow {
-  margin: 0 0 4px;
-  color: var(--accent);
-  font-size: 0.7rem;
-  font-weight: 800;
-  letter-spacing: 0.14em;
+.topbar {
+  margin-bottom: 10px;
 }
 h1, h2 { margin: 0; }
-h1 { font-size: clamp(1.9rem, 3.7vw, 2.55rem); line-height: 1.05; }
+h1 {
+  font-size: clamp(1.45rem, 2.6vw, 2rem);
+  line-height: 1.1;
+  font-weight: 650;
+  letter-spacing: -0.025em;
+}
 h2 { font-size: 1rem; }
-.subtitle { margin: 6px 0 0; color: var(--muted); font-size: 0.95rem; }
 
 .toolbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 10px;
+  margin-bottom: 9px;
 }
 .control-group,
 .runtime-controls {
@@ -59,10 +58,10 @@ h2 { font-size: 1rem; }
   gap: 7px;
 }
 button {
-  min-height: 36px;
-  padding: 8px 12px;
+  min-height: 34px;
+  padding: 7px 11px;
   border: 1px solid var(--border);
-  border-radius: 7px;
+  border-radius: 6px;
   background: var(--panel-2);
   color: var(--text);
   cursor: pointer;
@@ -94,21 +93,24 @@ button.text-button {
   border-radius: 0;
   background: transparent;
   color: #697587;
-  font-size: 0.78rem;
+  font-size: 0.76rem;
 }
 .diagnostics-toggle:hover:not(:disabled) { background: transparent; color: var(--text); }
 
 .emulator-frame {
+  width: min(100%, 960px, calc((100dvh - 125px) * 4 / 3));
+  aspect-ratio: 4 / 3;
+  margin: 0 auto;
   overflow: hidden;
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: 8px;
   background: #000;
 }
 #dos-container {
   position: relative;
   width: 100%;
-  height: clamp(460px, 76vh, 940px);
-  min-height: 460px;
+  height: 100%;
+  min-height: 0;
   background: #000;
 }
 .empty-state {
@@ -117,8 +119,7 @@ button.text-button {
   display: grid;
   place-content: center;
   justify-items: center;
-  gap: 8px;
-  padding: 24px;
+  padding: 20px;
   text-align: center;
   color: var(--muted);
   background:
@@ -130,14 +131,8 @@ button.text-button {
 .terminal-mark {
   color: var(--accent);
   font-family: monospace;
-  font-size: clamp(2.4rem, 8vw, 4.2rem);
+  font-size: clamp(2.1rem, 7vw, 3.6rem);
   font-weight: 800;
-}
-.empty-label {
-  color: #687486;
-  font-size: 0.8rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
 }
 
 /* Turbo C uses normal absolute mouse input; keep the host cursor instead of js-dos lock-mode cursor. */
@@ -146,10 +141,11 @@ button.text-button {
 }
 
 .diagnostics {
-  margin-top: 10px;
-  padding: 14px;
+  width: min(100%, 960px);
+  margin: 10px auto 0;
+  padding: 12px;
   border: 1px solid var(--border);
-  border-radius: 9px;
+  border-radius: 8px;
   background: var(--panel);
 }
 .panel-heading,
@@ -163,7 +159,7 @@ button.text-button {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
   gap: 7px;
-  margin: 12px 0;
+  margin: 10px 0;
 }
 .check {
   min-width: 0;
@@ -191,7 +187,7 @@ button.text-button {
   font-size: 0.76rem;
 }
 #log {
-  height: 190px;
+  height: 180px;
   margin: 0;
   padding: 10px;
   overflow: auto;
@@ -203,10 +199,13 @@ button.text-button {
 }
 
 @media (max-width: 700px) {
-  .shell { padding-top: 16px; }
-  .toolbar { align-items: flex-start; }
+  .shell { padding-top: 14px; }
+  .toolbar { align-items: center; }
   .runtime-controls { gap: 6px; }
-  #dos-container { height: 70vh; min-height: 400px; }
+  .emulator-frame {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+  }
 }
 
 @media (max-width: 520px) {
@@ -214,5 +213,4 @@ button.text-button {
   .control-group { flex: 1; }
   .runtime-controls { width: 100%; }
   .runtime-controls button { flex: 1 1 auto; }
-  #dos-container { min-height: 360px; }
 }
