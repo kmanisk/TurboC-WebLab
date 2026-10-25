@@ -1,8 +1,7 @@
 (() => {
   "use strict";
 
-  const SOURCE_ARCHIVE_URL =
-    "https://github.com/kmanisk/TurboC-WebLab/releases/download/v1.0.0/Turboc3-optimized.zip";
+  const SOURCE_ARCHIVE_URL = "Turboc3.zip";
   const EMULATORS_PATH_PREFIX =
     "https://cdn.jsdelivr.net/npm/js-dos@8.5.3/dist/emulators/";
   const SHOWCASE_PATH = "TURBOC3/Projects/SHOWCASE.C";
