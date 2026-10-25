@@ -2,8 +2,8 @@
   "use strict";
 
   const SOURCE_ARCHIVE_URL = "Turboc3.zip";
-  const SAVE_KEY = "turbo-c3-web-lab-v2";
-  const EMULATORS_PATH_PREFIX = "https://v8.js-dos.com/latest/emulators/";
+  const SAVE_KEY = "turbo-c3-web-lab-v3";
+  const EMULATORS_PATH_PREFIX = "https://cdn.jsdelivr.net/npm/js-dos@8.5.3/dist/emulators/";
   const DOSBOX_CONF = `[sdl]
 fullscreen=false
 autolock=true
@@ -17,7 +17,7 @@ mount c .
 c:
 cd TURBOC3
 cd BIN
-TC.EXE
+TC.EXE C:\TURBOC3\PROJECTS\BGIDEMO.C
 `;
 
   const $ = (id) => document.getElementById(id);
@@ -122,7 +122,7 @@ TC.EXE
     if (initFsPromise) return initFsPromise;
 
     initFsPromise = (async () => {
-      if (typeof window.fflate?.unzipSync !== "function") {
+      if (typeof window.fflate?.unzip !== "function") {
         throw new Error("ZIP loader failed to load.");
       }
 
@@ -135,9 +135,17 @@ TC.EXE
       const compressed = new Uint8Array(await response.arrayBuffer());
       log("Turbo C3 archive downloaded", `${(compressed.byteLength / 1024 / 1024).toFixed(2)} MiB`);
 
-      const files = window.fflate.unzipSync(compressed);
+      const files = await new Promise((resolve, reject) => {
+        window.fflate.unzip(compressed, (error, extracted) => {
+          if (error) reject(error);
+          else resolve(extracted);
+        });
+      });
       if (!files["TURBOC3/BIN/TC.EXE"]) {
         throw new Error("TURBOC3/BIN/TC.EXE is missing from the archive.");
+      }
+      if (!files["TURBOC3/Projects/BGIDEMO.C"]) {
+        throw new Error("BGIDEMO.C is missing from the archive.");
       }
 
       const initFs = Object.entries(files)
@@ -189,8 +197,8 @@ TC.EXE
 
     add(
       "ZIP loader",
-      typeof window.fflate?.unzipSync === "function" ? "pass" : "fail",
-      typeof window.fflate?.unzipSync === "function" ? "Ready" : "fflate did not load"
+      typeof window.fflate?.unzip === "function" ? "pass" : "fail",
+      typeof window.fflate?.unzip === "function" ? "Async extraction ready" : "fflate did not load"
     );
 
     add(
