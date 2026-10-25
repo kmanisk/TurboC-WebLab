@@ -13,8 +13,12 @@
 }
 
 * { box-sizing: border-box; }
-html, body { min-height: 100%; }
+html {
+  min-height: 100%;
+  background: var(--bg);
+}
 body {
+  min-height: 100vh;
   margin: 0;
   background: var(--bg);
   color: var(--text);
@@ -25,31 +29,31 @@ button { -webkit-tap-highlight-color: transparent; }
 code, pre { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; }
 [hidden] { display: none !important; }
 
-.shell {
-  width: min(1040px, 100%);
-  margin: 0 auto;
-  padding: 18px clamp(12px, 2.5vw, 24px) 22px;
+.app {
+  min-height: 100vh;
+  width: 100%;
+  padding: clamp(12px, 1.8vw, 20px);
 }
 
-.topbar {
-  margin-bottom: 10px;
+.app-bar {
+  width: min(1440px, 100%);
+  margin: 0 auto 10px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
 }
+
 h1, h2 { margin: 0; }
 h1 {
-  font-size: clamp(1.45rem, 2.6vw, 2rem);
-  line-height: 1.1;
+  font-size: clamp(1.18rem, 1.8vw, 1.55rem);
+  line-height: 1;
   font-weight: 650;
-  letter-spacing: -0.025em;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
 }
 h2 { font-size: 1rem; }
 
-.toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 9px;
-}
 .control-group,
 .runtime-controls {
   display: flex;
@@ -57,9 +61,10 @@ h2 { font-size: 1rem; }
   flex-wrap: wrap;
   gap: 7px;
 }
+
 button {
-  min-height: 34px;
-  padding: 7px 11px;
+  min-height: 32px;
+  padding: 6px 10px;
   border: 1px solid var(--border);
   border-radius: 6px;
   background: var(--panel-2);
@@ -86,6 +91,7 @@ button.text-button {
   background: transparent;
   color: var(--muted);
 }
+
 .diagnostics-toggle {
   min-height: 0;
   padding: 4px 0;
@@ -97,42 +103,43 @@ button.text-button {
 }
 .diagnostics-toggle:hover:not(:disabled) { background: transparent; color: var(--text); }
 
+.stage {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
 .emulator-frame {
-  width: min(100%, 960px, calc((100dvh - 125px) * 4 / 3));
+  width: min(calc(100vw - 2 * clamp(12px, 1.8vw, 20px)), calc((100dvh - 76px) * 4 / 3));
   aspect-ratio: 4 / 3;
-  margin: 0 auto;
   overflow: hidden;
   border: 1px solid var(--border);
   border-radius: 8px;
   background: #000;
 }
+
 #dos-container {
   position: relative;
   width: 100%;
   height: 100%;
+  min-width: 0;
   min-height: 0;
   background: #000;
 }
-.empty-state {
+
+.boot-state {
   position: absolute;
   inset: 0;
   display: grid;
-  place-content: center;
-  justify-items: center;
-  padding: 20px;
-  text-align: center;
+  place-items: center;
   color: var(--muted);
   background:
-    linear-gradient(rgba(255,255,255,0.014) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.014) 1px, transparent 1px),
+    linear-gradient(rgba(255,255,255,0.012) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.012) 1px, transparent 1px),
     #050608;
   background-size: 28px 28px;
-}
-.terminal-mark {
-  color: var(--accent);
-  font-family: monospace;
-  font-size: clamp(2.1rem, 7vw, 3.6rem);
-  font-weight: 800;
+  font-size: 0.86rem;
 }
 
 /* Turbo C uses normal absolute mouse input; keep the host cursor instead of js-dos lock-mode cursor. */
@@ -141,13 +148,14 @@ button.text-button {
 }
 
 .diagnostics {
-  width: min(100%, 960px);
+  width: min(1100px, 100%);
   margin: 10px auto 0;
   padding: 12px;
   border: 1px solid var(--border);
   border-radius: 8px;
   background: var(--panel);
 }
+
 .panel-heading,
 .log-heading {
   display: flex;
@@ -155,12 +163,14 @@ button.text-button {
   justify-content: space-between;
   gap: 16px;
 }
+
 .checks {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
   gap: 7px;
   margin: 10px 0;
 }
+
 .check {
   min-width: 0;
   padding: 9px 11px;
@@ -198,19 +208,27 @@ button.text-button {
   line-height: 1.45;
 }
 
-@media (max-width: 700px) {
-  .shell { padding-top: 14px; }
-  .toolbar { align-items: center; }
-  .runtime-controls { gap: 6px; }
+@media (max-width: 760px) {
+  .app-bar {
+    grid-template-columns: 1fr auto;
+  }
+  .control-group {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+  .diagnostics-toggle {
+    grid-column: 2;
+    grid-row: 1;
+  }
   .emulator-frame {
     width: 100%;
-    aspect-ratio: 4 / 3;
   }
 }
 
 @media (max-width: 520px) {
-  .toolbar { align-items: center; }
-  .control-group { flex: 1; }
+  .app { padding: 10px; }
+  .app-bar { gap: 9px; }
+  h1 { font-size: 1.05rem; }
   .runtime-controls { width: 100%; }
   .runtime-controls button { flex: 1 1 auto; }
 }
