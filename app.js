@@ -14,6 +14,14 @@
     SHOWCASE_PATH,
   ];
 
+  const BGI_SELF_TEST = new URLSearchParams(location.search).has("bgi-test");
+  const START_COMMAND = BGI_SELF_TEST
+    ? `cd \\TURBOC3\\PROJECTS
+C:\\TURBOC3\\BIN\\TCC.EXE -IC:\\TURBOC3\\INCLUDE -LC:\\TURBOC3\\LIB SHOWCASE.C C:\\TURBOC3\\LIB\\GRAPHICS.LIB
+SHOWCASE.EXE`
+    : `cd \\TURBOC3\\BIN
+TC.EXE C:\\TURBOC3\\PROJECTS\\SHOWCASE.C`;
+
   const DOSBOX_CONF = `[sdl]
 fullscreen=false
 autolock=true
@@ -25,9 +33,7 @@ memsize=32
 @echo off
 mount c .
 c:
-cd TURBOC3
-cd BIN
-TC.EXE C:\\TURBOC3\\PROJECTS\\SHOWCASE.C
+${START_COMMAND}
 `;
 
   const $ = (id) => document.getElementById(id);
