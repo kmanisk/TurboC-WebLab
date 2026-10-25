@@ -2,14 +2,27 @@
   "use strict";
 
   const SOURCE_ARCHIVE_URL = "Turboc3.zip";
-  const DOSBOX_CONFIG_URL = ".jsdos/dosbox.conf";
-  const SAVE_KEY = "turbo-c3-web-lab-v1";
+  const SAVE_KEY = "turbo-c3-web-lab-v2";
   const EMULATORS_PATH_PREFIX = "https://v8.js-dos.com/latest/emulators/";
+  const DOSBOX_CONF = `[sdl]
+fullscreen=false
+autolock=true
+
+[dosbox]
+memsize=32
+
+[autoexec]
+@echo off
+mount c .
+c:
+cd TURBOC3
+cd BIN
+TC.EXE
+`;
 
   const $ = (id) => document.getElementById(id);
   const ui = {
     container: $("dos-container"),
-    emptyState: $("emptyState"),
     statusPill: $("statusPill"),
     statusText: $("statusText"),
     startBtn: $("startBtn"),
@@ -30,7 +43,7 @@
   let commandInterface = null;
   let paused = false;
   let booting = false;
-  let runtimeBundleUrl = null;
+  let initFsPromise = null;
 
   function timestamp() {
     return new Date().toISOString().replace("T", " ").replace("Z", " UTC");
@@ -60,21 +73,16 @@
   }
 
   function showEmptyState() {
-    if (!document.getElementById("emptyState")) {
-      const empty = document.createElement("div");
-      empty.className = "empty-state";
-      empty.id = "emptyState";
-      empty.innerHTML = `
-        <div class="terminal-mark" aria-hidden="true">C:\\&gt;_</div>
-        <h2>Ready to boot</h2>
-        <p>Start the emulator to launch <code>TURBOC3\\BIN\\TC.EXE</code>.</p>`;
-      ui.container.appendChild(empty);
-      ui.emptyState = empty;
-    }
-  }
+    if (document.getElementById("emptyState")) return;
 
-  function hideEmptyState() {
-    document.getElementById("emptyState")?.remove();
+    const empty = document.createElement("div");
+    empty.className = "empty-state";
+    empty.id = "emptyState";
+    empty.innerHTML = `
+      <div class="terminal-mark" aria-hidden="true">C:\\&gt;_</div>
+      <h2>Ready to boot</h2>
+      <p>Start the emulator to launch <code>TURBOC3\\BIN\\TC.EXE</code>.</p>`;
+    ui.container.appendChild(empty);
   }
 
   function renderChecks(checks) {
@@ -95,45 +103,66 @@
     }
   }
 
-  async function probeBundle() {
-    const response = await fetch(SOURCE_ARCHIVE_URL, { method: "HEAD", cache: "no-store" });
+  async function probeArchive() {
+    const response = await fetch(SOURCE_ARCHIVE_URL, {
+      method: "HEAD",
+      cache: "no-store",
+    });
+
     if (!response.ok) {
       throw new Error(`${SOURCE_ARCHIVE_URL} returned HTTP ${response.status}`);
     }
+
     const bytes = Number(response.headers.get("content-length"));
     return Number.isFinite(bytes) && bytes > 0
       ? `${(bytes / 1024 / 1024).toFixed(2)} MiB`
       : "reachable";
   }
 
-  async function ensureRuntimeBundle() {
-    if (runtimeBundleUrl) return runtimeBundleUrl;
-    if (typeof window.emulators?.bundle !== "function") {
-      throw new Error("js-dos bundle builder failed to load.");
+  async function prepareInitFs() {
+    if (initFsPromise) return initFsPromise;
+
+    initFsPromise = (async () => {
+      if (typeof window.fflate?.unzipSync !== "function") {
+        throw new Error("ZIP loader failed to load.");
+      }
+
+      setStatus("loading", "Downloading Turbo C3...");
+      log("Downloading Turbo C3 archive...");
+
+      const response = await fetch(SOURCE_ARCHIVE_URL, { cache: "force-cache" });
+      if (!response.ok) {
+        throw new Error(`${SOURCE_ARCHIVE_URL} returned HTTP ${response.status}`);
+      }
+
+      const compressed = new Uint8Array(await response.arrayBuffer());
+      log("Turbo C3 archive downloaded", `${(compressed.byteLength / 1024 / 1024).toFixed(2)} MiB`);
+
+      setStatus("loading", "Extracting Turbo C3...");
+      const files = window.fflate.unzipSync(compressed);
+
+      if (!files["TURBOC3/BIN/TC.EXE"]) {
+        throw new Error("TURBOC3/BIN/TC.EXE is missing from the archive.");
+      }
+
+      const initFs = Object.entries(files)
+        .filter(([path]) => !path.endsWith("/"))
+        .map(([path, contents]) => ({ path, contents }));
+
+      if (!initFs.length) {
+        throw new Error("Turbo C3 archive extracted with no files.");
+      }
+
+      log("Turbo C3 filesystem prepared", `${initFs.length} files`);
+      return initFs;
+    })();
+
+    try {
+      return await initFsPromise;
+    } catch (error) {
+      initFsPromise = null;
+      throw error;
     }
-
-    window.emulators.pathPrefix = EMULATORS_PATH_PREFIX;
-    window.emulators.pathSuffix = "";
-
-    log("Building js-dos runtime bundle...");
-    const configResponse = await fetch(DOSBOX_CONFIG_URL, { cache: "no-store" });
-    if (!configResponse.ok) {
-      throw new Error(`${DOSBOX_CONFIG_URL} returned HTTP ${configResponse.status}`);
-    }
-
-    const dosboxConf = await configResponse.text();
-    const builder = await window.emulators.bundle();
-    builder.extract(SOURCE_ARCHIVE_URL, "/");
-    builder.dosboxConf = dosboxConf;
-
-    const bytes = await builder.toUint8Array(true);
-    if (!bytes?.byteLength) {
-      throw new Error("Runtime bundle builder returned an empty bundle.");
-    }
-
-    runtimeBundleUrl = URL.createObjectURL(new Blob([bytes], { type: "application/zip" }));
-    log("Runtime bundle ready", `${(bytes.byteLength / 1024 / 1024).toFixed(2)} MiB`);
-    return runtimeBundleUrl;
   }
 
   async function runDiagnostics() {
@@ -160,13 +189,13 @@
     add(
       "js-dos",
       typeof window.Dos === "function" ? "pass" : "fail",
-      typeof window.Dos === "function" ? "Player API loaded" : "js-dos.min.js did not load"
+      typeof window.Dos === "function" ? "Player API loaded" : "js-dos.js did not load"
     );
 
     add(
-      "Bundle builder",
-      typeof window.emulators?.bundle === "function" ? "pass" : "fail",
-      typeof window.emulators?.bundle === "function" ? "Ready" : "emulators.js did not load"
+      "ZIP loader",
+      typeof window.fflate?.unzipSync === "function" ? "pass" : "fail",
+      typeof window.fflate?.unzipSync === "function" ? "Ready" : "fflate did not load"
     );
 
     add(
@@ -180,18 +209,19 @@
       typeof SharedArrayBuffer === "function" ? "pass" : "warn",
       typeof SharedArrayBuffer === "function"
         ? "Available"
-        : "Unavailable; some threaded optimizations may be disabled"
+        : "Unavailable; not required for the direct filesystem loader"
     );
 
     try {
-      const bundleInfo = await probeBundle();
-      add("Turbo C3 archive", "pass", `${SOURCE_ARCHIVE_URL} • ${bundleInfo}`);
+      const archiveInfo = await probeArchive();
+      add("Turbo C3 archive", "pass", `${SOURCE_ARCHIVE_URL} • ${archiveInfo}`);
     } catch (error) {
       add("Turbo C3 archive", "fail", error.message);
     }
 
     renderChecks(checks);
     const failed = checks.filter((check) => check.result === "fail");
+
     if (failed.length) {
       setStatus("error", `${failed.length} check${failed.length === 1 ? "" : "s"} failed`);
       log("Diagnostics completed with failures", failed.map((item) => item.name));
@@ -205,21 +235,18 @@
   }
 
   async function stopPlayer({ quiet = false } = {}) {
-    if (!player) {
-      if (!quiet) setStatus("ready", "Ready");
-      return;
-    }
-
     const current = player;
     player = null;
     commandInterface = null;
     paused = false;
 
-    try {
-      await current.stop();
-      if (!quiet) log("Emulator stopped");
-    } catch (error) {
-      log("Stop failed", error?.message || String(error));
+    if (current) {
+      try {
+        await current.stop();
+        if (!quiet) log("Emulator stopped");
+      } catch (error) {
+        log("Stop warning", error?.message || String(error));
+      }
     }
 
     ui.container.replaceChildren();
@@ -230,35 +257,36 @@
   }
 
   async function boot() {
-    if (booting) return;
+    if (booting || player) return;
+
     booting = true;
-    setControls(Boolean(player));
-    setStatus("loading", "Starting...");
+    setControls(false);
+    setStatus("loading", "Preparing...");
     log("Starting Turbo C3");
 
     try {
       if (location.protocol === "file:") {
-        throw new Error("Open this project through HTTP, not file://. Example: python3 -m http.server 8080");
+        throw new Error("Open this project through HTTP/HTTPS, not file://.");
       }
       if (typeof window.Dos !== "function") {
-        throw new Error("js-dos failed to load. Check js-dos.min.js.");
+        throw new Error("js-dos failed to load.");
       }
 
-      await probeBundle();
-      const bundleUrl = await ensureRuntimeBundle();
-      await stopPlayer({ quiet: true });
-      hideEmptyState();
+      const initFs = await prepareInitFs();
+
+      ui.container.replaceChildren();
+      setStatus("loading", "Starting DOSBox...");
+      log("Launching DOSBox with prepared filesystem...");
 
       player = window.Dos(ui.container, {
-        url: bundleUrl,
+        dosboxConf: DOSBOX_CONF,
+        initFs,
         pathPrefix: EMULATORS_PATH_PREFIX,
-        pathSuffix: "",
         autoStart: true,
         autoSave: true,
         theme: "dark",
         backend: "dosbox",
         backendLocked: true,
-        workerThread: typeof SharedArrayBuffer === "function",
         imageRendering: "pixelated",
         renderAspect: "4/3",
         fsChanges: {
@@ -278,6 +306,10 @@
             setStatus("running", "Turbo C3 running");
             setControls(true);
             ui.container.focus?.();
+          }
+
+          if (event === "exit") {
+            log("DOSBox exited", arg);
           }
         },
       });
@@ -309,6 +341,7 @@
 
   async function saveState() {
     if (!player) return;
+
     try {
       const saved = await player.save();
       log(saved ? "Local emulator state saved" : "Save request completed without new changes");
@@ -320,6 +353,7 @@
 
   function togglePause() {
     if (!player || typeof player.setPaused !== "function") return;
+
     paused = !paused;
     player.setPaused(paused);
     ui.pauseBtn.textContent = paused ? "Resume" : "Pause";
