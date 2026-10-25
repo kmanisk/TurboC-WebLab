@@ -140,6 +140,11 @@ button.text-button {
   text-transform: uppercase;
 }
 
+/* Turbo C uses normal absolute mouse input; keep the host cursor instead of js-dos lock-mode cursor. */
+#dos-container canvas {
+  cursor: default !important;
+}
+
 .diagnostics {
   margin-top: 10px;
   padding: 14px;

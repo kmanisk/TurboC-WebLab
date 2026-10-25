@@ -31,7 +31,7 @@ TC.EXE C:\\TURBOC3\\PROJECTS\\SHOWCASE.C`;
 
   const DOSBOX_CONF = `[sdl]
 fullscreen=false
-autolock=true
+autolock=false
 
 [dosbox]
 memsize=32
@@ -313,6 +313,8 @@ ${START_COMMAND}
         theme: "dark",
         backend: "dosbox",
         backendLocked: true,
+        mouseCapture: false,
+        noCursor: false,
         workerThread: typeof SharedArrayBuffer === "function",
         imageRendering: "pixelated",
         renderBackend: "webgl",
@@ -344,6 +346,12 @@ ${START_COMMAND}
 
       if (typeof player.setNoCloud === "function") {
         player.setNoCloud(true);
+      }
+      if (typeof player.setMouseCapture === "function") {
+        player.setMouseCapture(false);
+      }
+      if (typeof player.setNoCursor === "function") {
+        player.setNoCursor(false);
       }
     } catch (error) {
       log("Startup failed", error?.stack || error?.message || String(error));
