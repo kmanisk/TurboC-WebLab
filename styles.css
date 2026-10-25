@@ -36,17 +36,34 @@ code, pre { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospac
 }
 
 .app-bar {
-  width: min(1440px, 100%);
-  margin: 0 auto 10px;
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  width: min(1680px, 96vw);
+  margin: 0 auto 12px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.brand-stack {
+  min-width: 0;
+}
+
+.brand-line {
+  display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 9px;
+}
+
+.brand-icon {
+  width: 27px;
+  height: 27px;
+  image-rendering: pixelated;
+  flex: 0 0 auto;
 }
 
 h1, h2 { margin: 0; }
 h1 {
-  font-size: clamp(1.18rem, 1.8vw, 1.55rem);
+  font-size: clamp(1.25rem, 1.8vw, 1.62rem);
   line-height: 1;
   font-weight: 650;
   letter-spacing: -0.02em;
@@ -54,6 +71,9 @@ h1 {
 }
 h2 { font-size: 1rem; }
 
+.control-group {
+  margin-top: 9px;
+}
 .control-group,
 .runtime-controls {
   display: flex;
@@ -74,7 +94,7 @@ button {
 }
 button:hover:not(:disabled) { border-color: #3a475d; background: #1b2331; }
 button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-button:disabled { cursor: default; opacity: 0.5; }
+button:disabled { cursor: default; opacity: 0.58; }
 button.primary {
   background: var(--accent);
   color: #061017;
@@ -94,6 +114,7 @@ button.text-button {
 
 .diagnostics-toggle {
   min-height: 0;
+  margin-top: 4px;
   padding: 4px 0;
   border: 0;
   border-radius: 0;
@@ -105,22 +126,15 @@ button.text-button {
 
 .stage {
   width: 100%;
-  display: none;
+  display: flex;
   justify-content: center;
   align-items: flex-start;
 }
 
-body:has(#startBtn:disabled) .stage,
-body:has(#runtimeControls:not([hidden])) .stage {
-  display: flex;
-}
-
 .emulator-frame {
-  width: min(
-    calc(100vw - 2 * clamp(12px, 1.8vw, 20px)),
-    calc((100dvh - 76px) * 4 / 3)
-  );
-  aspect-ratio: 4 / 3;
+  width: min(1680px, 96vw);
+  height: min(78dvh, 900px);
+  min-height: 460px;
   overflow: hidden;
   border: 1px solid var(--border);
   border-radius: 8px;
@@ -136,28 +150,58 @@ body:has(#runtimeControls:not([hidden])) .stage {
   background: #000;
 }
 
-#dos-container:empty::before {
-  content: "Starting Turbo C3…";
+.empty-state {
   position: absolute;
   inset: 0;
   display: grid;
   place-items: center;
-  color: var(--muted);
+  padding: 22px;
   background:
     linear-gradient(rgba(255,255,255,0.012) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255,255,255,0.012) 1px, transparent 1px),
     #050608;
   background-size: 28px 28px;
-  font-size: 0.86rem;
 }
 
-/* Turbo C uses normal absolute mouse input; keep the host cursor instead of js-dos lock-mode cursor. */
+.terminal-window {
+  width: min(360px, 82vw);
+  padding: 30px 26px 24px;
+  text-align: center;
+  border: 1px solid #344052;
+  background: #080b10;
+  box-shadow: 0 18px 55px rgba(0,0,0,.32);
+}
+
+.terminal-mark {
+  color: var(--accent);
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: clamp(2.5rem, 6vw, 4rem);
+  font-weight: 800;
+  line-height: 1;
+  image-rendering: pixelated;
+}
+
+.empty-label {
+  margin-top: 13px;
+  color: var(--text);
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: 0.92rem;
+  font-weight: 650;
+}
+
+.empty-hint {
+  margin-top: 6px;
+  color: #687486;
+  font-size: 0.76rem;
+}
+
+/* Keep the host cursor visible. js-dos owns its own render geometry and pointer mapping. */
 #dos-container canvas {
   cursor: default !important;
 }
 
 .diagnostics {
-  width: min(1100px, 100%);
+  width: min(1100px, 96vw);
   margin: 10px auto 0;
   padding: 12px;
   border: 1px solid var(--border);
@@ -218,26 +262,30 @@ body:has(#runtimeControls:not([hidden])) .stage {
 }
 
 @media (max-width: 760px) {
-  .app-bar {
-    grid-template-columns: 1fr auto;
-  }
-  .control-group {
-    grid-column: 1 / -1;
-    grid-row: 2;
-  }
-  .diagnostics-toggle {
-    grid-column: 2;
-    grid-row: 1;
+  .app-bar,
+  .emulator-frame,
+  .diagnostics {
+    width: 100%;
   }
   .emulator-frame {
-    width: 100%;
+    height: min(72dvh, 760px);
+    min-height: 390px;
   }
 }
 
 @media (max-width: 520px) {
   .app { padding: 10px; }
-  .app-bar { gap: 9px; }
+  .app-bar { gap: 10px; }
+  .brand-icon { width: 23px; height: 23px; }
   h1 { font-size: 1.05rem; }
   .runtime-controls { width: 100%; }
   .runtime-controls button { flex: 1 1 auto; }
+  .emulator-frame { min-height: 350px; }
+}
+
+@media (max-height: 680px) and (min-width: 761px) {
+  .emulator-frame {
+    height: calc(100dvh - 118px);
+    min-height: 0;
+  }
 }
