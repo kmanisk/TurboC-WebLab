@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const SOURCE_ARCHIVE_URL = "Turboc3.zip";
+  const SOURCE_ARCHIVE_URL = "Turboc3.zip?v=source-dir-fix";
   const EMULATORS_PATH_PREFIX =
     "https://cdn.jsdelivr.net/npm/js-dos@8.5.3/dist/emulators/";
   const SHOWCASE_PATH = "TURBOC3/Projects/SHOWCASE.C";
