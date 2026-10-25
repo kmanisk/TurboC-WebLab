@@ -3,10 +3,12 @@
   --bg: #090b10;
   --panel: #10141d;
   --panel-2: #151b26;
-  --border: #252d3b;
+  --border: #2b3443;
+  --border-strong: #3a4658;
   --text: #edf2f7;
-  --muted: #8f9bad;
+  --muted: #7f8a9a;
   --accent: #56d7ff;
+  --accent-soft: rgba(86, 215, 255, 0.14);
   --good: #62e6a7;
   --warn: #f4c86a;
   --bad: #ff7b89;
@@ -20,89 +22,213 @@ html {
 body {
   min-height: 100vh;
   margin: 0;
-  background: var(--bg);
+  background:
+    radial-gradient(circle at 50% 10%, rgba(53, 91, 132, 0.10), transparent 30rem),
+    radial-gradient(circle at 50% 80%, rgba(34, 71, 105, 0.06), transparent 34rem),
+    var(--bg);
   color: var(--text);
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: "Iosevka", "JetBrains Mono", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
 }
 button, input { font: inherit; }
 button { -webkit-tap-highlight-color: transparent; }
-code, pre { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; }
+code, pre { font-family: inherit; }
 [hidden] { display: none !important; }
 
 .app {
   min-height: 100vh;
   width: 100%;
-  padding: clamp(12px, 1.8vw, 20px);
+  padding: clamp(28px, 4vh, 44px) 20px 34px;
 }
 
-.app-bar {
-  width: min(1680px, 96vw);
-  margin: 0 auto 12px;
+.hero-header {
+  width: min(920px, calc(100vw - 40px));
+  margin: 0 auto 30px;
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 18px;
-}
-
-.brand-stack {
-  min-width: 0;
+  justify-content: center;
+  align-items: center;
 }
 
 .brand-line {
   display: flex;
   align-items: center;
-  gap: 9px;
+  justify-content: center;
+  gap: 20px;
+  min-width: 0;
 }
 
 .brand-icon {
-  width: 27px;
-  height: 27px;
-  image-rendering: pixelated;
+  width: clamp(46px, 4vw, 58px);
+  height: clamp(46px, 4vw, 58px);
   flex: 0 0 auto;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 0 14px rgba(86, 215, 255, 0.08));
 }
 
 h1, h2 { margin: 0; }
 h1 {
-  font-size: clamp(1.25rem, 1.8vw, 1.62rem);
+  display: flex;
+  align-items: baseline;
+  gap: 0.34em;
+  color: #eef3f8;
+  font-size: clamp(2rem, 3.3vw, 3rem);
   line-height: 1;
   font-weight: 650;
-  letter-spacing: -0.02em;
+  letter-spacing: 0.015em;
   white-space: nowrap;
+  text-shadow: 0 2px 20px rgba(0, 0, 0, 0.45);
+}
+.brand-accent {
+  color: var(--accent);
+  font-weight: 800;
+  text-shadow: 0 0 18px rgba(86, 215, 255, 0.16);
 }
 h2 { font-size: 1rem; }
 
-.control-group {
-  margin-top: 9px;
-  margin-left: 36px;
+.stage {
+  width: 100%;
+  display: flex;
+  justify-content: center;
 }
+
+.emulator-frame {
+  width: min(920px, calc(100vw - 40px));
+  height: clamp(430px, calc(100dvh - 250px), 632px);
+  min-height: 430px;
+  overflow: hidden;
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  background: #05080d;
+  box-shadow:
+    0 30px 90px rgba(0, 0, 0, 0.26),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.012);
+}
+
+#dos-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  background: #05080d;
+}
+
+.empty-state {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 28px;
+  background:
+    linear-gradient(rgba(86, 215, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(86, 215, 255, 0.035) 1px, transparent 1px),
+    radial-gradient(circle at center, rgba(31, 67, 96, 0.08), transparent 42%),
+    #05080d;
+  background-size: 26px 26px, 26px 26px, auto, auto;
+}
+
+.terminal-window {
+  width: min(400px, 76vw);
+  padding: 44px 30px 28px;
+  text-align: center;
+  border: 1px solid var(--border-strong);
+  border-radius: 7px;
+  background:
+    linear-gradient(180deg, rgba(13, 19, 28, 0.98), rgba(7, 10, 15, 0.99));
+  box-shadow:
+    0 22px 58px rgba(0, 0, 0, 0.44),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.012);
+}
+
+.terminal-mark {
+  color: var(--accent);
+  font-family: "Iosevka", "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+  font-size: clamp(3rem, 6vw, 4.4rem);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 0.03em;
+  text-shadow: 0 0 18px rgba(86, 215, 255, 0.12);
+  image-rendering: pixelated;
+}
+
+.empty-label {
+  margin-top: 18px;
+  color: var(--text);
+  font-size: clamp(1rem, 1.5vw, 1.22rem);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.empty-hint {
+  margin-top: 10px;
+  color: #758093;
+  font-size: clamp(0.76rem, 1vw, 0.9rem);
+}
+
+/* Keep the host cursor visible. js-dos owns its own render geometry and pointer mapping. */
+#dos-container canvas {
+  cursor: default !important;
+}
+
+.launch-controls {
+  width: min(920px, calc(100vw - 40px));
+  margin: 22px auto 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 13px;
+  flex-wrap: wrap;
+}
+
 .control-group,
 .runtime-controls {
   display: flex;
   align-items: center;
+  justify-content: center;
   flex-wrap: wrap;
-  gap: 7px;
+  gap: 9px;
 }
 
 button {
-  min-height: 32px;
-  padding: 6px 10px;
+  min-height: 46px;
+  padding: 10px 16px;
   border: 1px solid var(--border);
-  border-radius: 6px;
-  background: var(--panel-2);
+  border-radius: 7px;
+  background: #111722;
   color: var(--text);
   cursor: pointer;
-  transition: border-color 120ms ease, background 120ms ease, opacity 120ms ease;
+  transition: border-color 120ms ease, background 120ms ease, color 120ms ease, opacity 120ms ease, transform 120ms ease;
 }
-button:hover:not(:disabled) { border-color: #3a475d; background: #1b2331; }
+button:hover:not(:disabled) {
+  border-color: #405067;
+  background: #17202d;
+}
+button:active:not(:disabled) { transform: translateY(1px); }
 button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-button:disabled { cursor: default; opacity: 0.58; }
+button:disabled { cursor: default; opacity: 0.56; }
+
 button.primary {
+  position: relative;
+  min-width: 196px;
+  padding-left: 46px;
   background: var(--accent);
   color: #061017;
   border-color: transparent;
   font-weight: 800;
+  box-shadow: 0 8px 30px rgba(86, 215, 255, 0.16);
 }
-button.primary:hover:not(:disabled) { background: #84e3ff; }
+button.primary::before {
+  content: "";
+  position: absolute;
+  left: 21px;
+  top: 50%;
+  width: 0;
+  height: 0;
+  border-top: 7px solid transparent;
+  border-bottom: 7px solid transparent;
+  border-left: 11px solid #061017;
+  transform: translateY(-50%);
+}
+button.primary:hover:not(:disabled) { background: #78e0ff; }
 button.danger { color: #ffc6cc; border-color: rgba(255, 123, 137, 0.28); }
 button.ghost { background: transparent; }
 button.text-button {
@@ -114,100 +240,37 @@ button.text-button {
 }
 
 .diagnostics-toggle {
-  min-height: 0;
-  margin-top: 4px;
-  padding: 4px 0;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  color: #697587;
-  font-size: 0.76rem;
-}
-.diagnostics-toggle:hover:not(:disabled) { background: transparent; color: var(--text); }
-
-.stage {
-  width: 100%;
-  display: flex;
+  min-width: 154px;
+  display: inline-flex;
+  align-items: center;
   justify-content: center;
-  align-items: flex-start;
+  gap: 10px;
+  color: #cdd6e2;
+  background: #0e141e;
+  border-color: #344052;
 }
-
-.emulator-frame {
-  width: min(1680px, 96vw);
-  height: min(78dvh, 900px);
-  min-height: 460px;
-  overflow: hidden;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: #000;
+.diagnostics-toggle svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
-
-#dos-container {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  min-width: 0;
-  min-height: 0;
-  background: #000;
-}
-
-.empty-state {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  padding: 22px;
-  background:
-    linear-gradient(rgba(255,255,255,0.012) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.012) 1px, transparent 1px),
-    #050608;
-  background-size: 28px 28px;
-}
-
-.terminal-window {
-  width: min(360px, 82vw);
-  padding: 30px 26px 24px;
-  text-align: center;
-  border: 1px solid #344052;
-  background: #080b10;
-  box-shadow: 0 18px 55px rgba(0,0,0,.32);
-}
-
-.terminal-mark {
-  color: var(--accent);
-  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
-  font-size: clamp(2.5rem, 6vw, 4rem);
-  font-weight: 800;
-  line-height: 1;
-  image-rendering: pixelated;
-}
-
-.empty-label {
-  margin-top: 13px;
+.diagnostics-toggle:hover:not(:disabled) {
   color: var(--text);
-  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
-  font-size: 0.92rem;
-  font-weight: 650;
-}
-
-.empty-hint {
-  margin-top: 6px;
-  color: #687486;
-  font-size: 0.76rem;
-}
-
-/* Keep the host cursor visible. js-dos owns its own render geometry and pointer mapping. */
-#dos-container canvas {
-  cursor: default !important;
+  background: #141d29;
+  border-color: #45556d;
 }
 
 .diagnostics {
-  width: min(1100px, 96vw);
-  margin: 10px auto 0;
-  padding: 12px;
+  width: min(920px, calc(100vw - 40px));
+  margin: 16px auto 0;
+  padding: 14px;
   border: 1px solid var(--border);
   border-radius: 8px;
-  background: var(--panel);
+  background: rgba(16, 20, 29, 0.96);
 }
 
 .panel-heading,
@@ -263,31 +326,59 @@ button.text-button {
 }
 
 @media (max-width: 760px) {
-  .app-bar,
+  .app { padding: 24px 14px 28px; }
+  .hero-header,
   .emulator-frame,
+  .launch-controls,
   .diagnostics {
     width: 100%;
   }
+  .hero-header { margin-bottom: 22px; }
+  .brand-line { gap: 13px; }
+  .brand-icon { width: 42px; height: 42px; }
+  h1 { font-size: clamp(1.55rem, 6vw, 2.1rem); }
   .emulator-frame {
-    height: min(72dvh, 760px);
+    height: min(68dvh, 590px);
     min-height: 390px;
   }
 }
 
 @media (max-width: 520px) {
-  .app { padding: 10px; }
-  .app-bar { gap: 10px; }
-  .brand-icon { width: 23px; height: 23px; }
-  h1 { font-size: 1.05rem; }
-  .control-group { margin-left: 32px; }
-  .runtime-controls { width: 100%; }
+  .app { padding: 20px 10px 24px; }
+  .brand-line { gap: 9px; }
+  .brand-icon { width: 34px; height: 34px; }
+  h1 {
+    gap: 0.22em;
+    font-size: 1.3rem;
+  }
+  .terminal-window {
+    width: min(330px, 88vw);
+    padding: 34px 22px 24px;
+  }
+  .launch-controls {
+    margin-top: 14px;
+    gap: 9px;
+  }
+  .control-group,
+  .runtime-controls {
+    width: 100%;
+  }
+  button.primary,
+  .diagnostics-toggle {
+    flex: 1 1 0;
+  }
   .runtime-controls button { flex: 1 1 auto; }
   .emulator-frame { min-height: 350px; }
 }
 
-@media (max-height: 680px) and (min-width: 761px) {
+@media (max-height: 700px) and (min-width: 761px) {
+  .app { padding-top: 20px; }
+  .hero-header { margin-bottom: 18px; }
+  .brand-icon { width: 42px; height: 42px; }
+  h1 { font-size: 2rem; }
   .emulator-frame {
-    height: calc(100dvh - 118px);
-    min-height: 0;
+    height: calc(100dvh - 190px);
+    min-height: 360px;
   }
+  .launch-controls { margin-top: 14px; }
 }
