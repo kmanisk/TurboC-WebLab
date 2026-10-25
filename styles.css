@@ -105,13 +105,21 @@ button.text-button {
 
 .stage {
   width: 100%;
-  display: flex;
+  display: none;
   justify-content: center;
   align-items: flex-start;
 }
 
+body:has(#startBtn:disabled) .stage,
+body:has(#runtimeControls:not([hidden])) .stage {
+  display: flex;
+}
+
 .emulator-frame {
-  width: min(calc(100vw - 2 * clamp(12px, 1.8vw, 20px)), calc((100dvh - 76px) * 4 / 3));
+  width: min(
+    calc(100vw - 2 * clamp(12px, 1.8vw, 20px)),
+    calc((100dvh - 76px) * 4 / 3)
+  );
   aspect-ratio: 4 / 3;
   overflow: hidden;
   border: 1px solid var(--border);
@@ -128,7 +136,8 @@ button.text-button {
   background: #000;
 }
 
-.boot-state {
+#dos-container:empty::before {
+  content: "Starting Turbo C3…";
   position: absolute;
   inset: 0;
   display: grid;
