@@ -101,8 +101,11 @@ ${START_COMMAND}
     empty.className = "empty-state";
     empty.id = "emptyState";
     empty.innerHTML = `
-      <div class="terminal-mark" aria-hidden="true">C:\\&gt;_</div>
-      <span class="empty-label">Turbo C3</span>`;
+      <div class="terminal-window">
+        <div class="terminal-mark" aria-hidden="true">C:\\&gt;_</div>
+        <div class="empty-label">Turbo C3</div>
+        <div class="empty-hint">Ready to launch</div>
+      </div>`;
     ui.container.appendChild(empty);
   }
 
@@ -318,7 +321,6 @@ ${START_COMMAND}
         workerThread: typeof SharedArrayBuffer === "function",
         imageRendering: "pixelated",
         renderBackend: "webgl",
-        renderAspect: "4/3",
         thinSidebar: true,
         fsChanges: {
           local: false,
