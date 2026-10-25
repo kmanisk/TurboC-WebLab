@@ -16,33 +16,30 @@
 <body>
   <main class="shell">
     <header class="topbar">
-      <div>
-        <p class="eyebrow">DOS DEVELOPMENT ENVIRONMENT</p>
-        <h1>Turbo C3 Web Lab</h1>
-        <p class="subtitle">A zero-install Turbo C/C++ environment powered by js-dos.</p>
-      </div>
-      <div class="status-pill" id="statusPill" data-state="idle" aria-live="polite">
-        <span class="status-dot" aria-hidden="true"></span>
-        <span id="statusText">Idle</span>
-      </div>
+      <p class="eyebrow">DOS DEVELOPMENT ENVIRONMENT</p>
+      <h1>Turbo C3 Web Lab</h1>
+      <p class="subtitle">Turbo C/C++ directly in your browser.</p>
     </header>
 
     <section class="toolbar" aria-label="Emulator controls">
-      <button class="primary" id="startBtn" type="button">Start Turbo C3</button>
-      <button id="restartBtn" type="button" disabled>Restart</button>
-      <button id="pauseBtn" type="button" disabled>Pause</button>
-      <button id="saveBtn" type="button" disabled>Save state</button>
-      <button id="fullscreenBtn" type="button" disabled>Fullscreen</button>
-      <button class="danger" id="stopBtn" type="button" disabled>Stop</button>
-      <button class="ghost" id="diagnosticsBtn" type="button" aria-expanded="false">Diagnostics</button>
+      <div class="control-group">
+        <button class="primary" id="startBtn" type="button">Start Turbo C3</button>
+        <div class="runtime-controls" id="runtimeControls" hidden>
+          <button id="restartBtn" type="button">Restart</button>
+          <button id="pauseBtn" type="button">Pause</button>
+          <button id="saveBtn" type="button">Save</button>
+          <button id="fullscreenBtn" type="button">Fullscreen</button>
+          <button class="danger" id="stopBtn" type="button">Stop</button>
+        </div>
+      </div>
+      <button class="diagnostics-toggle" id="diagnosticsBtn" type="button" aria-expanded="false">Diagnostics</button>
     </section>
 
     <section class="emulator-frame" aria-label="Turbo C3 emulator">
       <div id="dos-container">
         <div class="empty-state" id="emptyState">
           <div class="terminal-mark" aria-hidden="true">C:\&gt;_</div>
-          <h2>Ready to boot</h2>
-          <p>Start the emulator to launch <code>TURBOC3\BIN\TC.EXE</code>.</p>
+          <span class="empty-label">Turbo C3</span>
         </div>
       </div>
     </section>
@@ -66,12 +63,6 @@
         <pre id="log" role="log" aria-live="polite"></pre>
       </div>
     </section>
-
-    <footer>
-      <span>Source archive: <code>Turboc3.zip</code></span>
-      <span>•</span>
-      <span>Loaded locally into js-dos at startup</span>
-    </footer>
   </main>
 </body>
 </html>
